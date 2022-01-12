@@ -37,6 +37,12 @@ const Home: NextPage = () => {
               <h2>Invite</h2>
             </a>
           </div>
+          <div className={styles.navItem}>
+            <a href="https://github.com/jckli/mangaupdates-bot">
+              <Image src="/images/nav/nav4.png" alt="nav4" width={125} height={125} />
+              <h2>GitHub</h2>
+            </a>
+          </div>
         </div>
       </div>
       <div className={styles.bottom}>
