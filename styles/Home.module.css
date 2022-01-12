@@ -8,15 +8,10 @@
 }
 
 .container {
-  background-image: url("/images/background.jpg");
-  height: 100vh;
-  background-attachment: scroll;
-}
-
-.top {
   background-image: linear-gradient(
     rgba(0, 0, 0, 0.65)
   );
+  height: 100%;
 }
 
 .title {
@@ -77,6 +72,25 @@
 }
 
 .bottom {
+  margin: 0 auto;
+  padding: 0 40px;
+  max-width: 1000px;
+}
+
+.card {
   background-color: #17181a;
-  height: 500px;
+  min-height: auto;
+  border-radius: 16px;
+}
+
+.info {
+  padding: 30px 40px;
+  text-align: center;
+  color: white;
+}
+
+.info > h1 {
+  font-family: WildWords;
+  font-size: 28px;
+  letter-spacing: 1px;
 }

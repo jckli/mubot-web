@@ -6,6 +6,10 @@ import styles from '../styles/Home.module.css'
 const Home: NextPage = () => {
   return (
     <div className={styles.container}>
+      <Head>
+        <link rel="shortcut icon" href="/images/favicon.ico" />
+        <title>MangaUpdates Bot</title>
+      </Head>
       <div className={styles.top}>
         <div className={styles.title}>
           <Image src="/images/logo.png" alt="logo" width={200} height={200} />
@@ -36,6 +40,11 @@ const Home: NextPage = () => {
         </div>
       </div>
       <div className={styles.bottom}>
+        <div className={styles.card}>
+          <div className={styles.info}>
+            <h1>Statistics</h1>
+          </div>
+        </div>
       </div>
     </div>
     
