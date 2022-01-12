@@ -1,6 +1,6 @@
 @font-face {
   font-family: Monsterrat;
-  src: url("/fonts/montserratsemibold.ttf");
+  src: url("/fonts/montserratmedium.ttf");
 }
 @font-face {
   font-family: WildWords;
@@ -10,6 +10,13 @@
 .container {
   background-image: url("/images/background.jpg");
   height: 100vh;
+  background-attachment: scroll;
+}
+
+.top {
+  background-image: linear-gradient(
+    rgba(0, 0, 0, 0.65)
+  );
 }
 
 .title {
@@ -18,9 +25,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-image: linear-gradient(
-    rgba(0, 0, 0, 0.65)
-  );
+  
 }
 
 .title img {
@@ -34,15 +39,44 @@
 
 .text > h1 {
   color: white;
+  font-family: WildWords;
   font-size: 3rem;
   margin-bottom: 16px;
+  letter-spacing: 1px;
 }
 
 .text > h2 {
   color: white;
   font-size: 18px;
 }
+
 .nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: WildWords;
+  color: white;
+  padding-bottom: 20px;
+  letter-spacing: 1px; 
+}
+
+.navItem {
+  display: inline-block;
+  text-align: center;
+  margin: 0 15px;
+  max-width: 125px;
+}
+
+.navItem > a img {
+  border-radius: 16px;
+}
+
+.navItem > a h2 {
+  margin-top: 10px;
+  font-size: 20px;
+}
+
+.bottom {
   background-color: #17181a;
-  height: 50vh;
+  height: 500px;
 }
