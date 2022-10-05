@@ -5,23 +5,22 @@ import { MenuButton } from "../components/MenuButton";
 const Home: NextPage = () => {
     return (
         <>
-            <div id="top" className="h-[600px] flex flex-col items-center justify-center">
-                <div id="title" className="flex items-center justify-center">
-                    <div className="relative">
+            <div id="top" className="min-h-[600px] flex flex-col items-center justify-center">
+                <div id="title" className="flex flex-col pt-16 md:flex-row items-center justify-center">
+                    <div className="relative w-[125px] h-[125px] md:w-[170px] md:h-[170px]">
                         <Image
                             className="rounded-full"
                             alt="MangaUpdates logo"
                             src="/images/logo.png" 
-                            width={170} 
-                            height={170} 
+                            layout="fill"
                         />
                     </div>
-                    <div className="ml-8">
-                        <h1 className="font-kgcs text-4xl">MangaUpdates Bot</h1>
-                        <h2 className="font-kgcs text-md w-[500px] mt-4">Track your favorite mangas, manhwas, or doujins and get every new chapter update sent to you!</h2>
+                    <div className="text-center mt-4 md:mt-0 md:text-left md:ml-8">
+                        <h1 className="font-kgcs text-2xl md:text-4xl">MangaUpdates Bot</h1>
+                        <h2 className="font-kgcs text-sm md:text-base max-w-[500px] mt-4 px-6 md:px-0">Track your favorite mangas, manhwas, or doujins and get every new chapter update sent to you!</h2>
                     </div>
                 </div>
-                <div className="mt-14 flex gap-8">
+                <div className="mt-14 px-8 flex flex-wrap gap-8 justify-center items-center">
                     <MenuButton 
                         name="Invite"
                         link="https://jackli.dev/mangaupdates"

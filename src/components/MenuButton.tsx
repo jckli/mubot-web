@@ -16,7 +16,7 @@ export const MenuButton = (props: any) => {
                 width={125}
                 height={125}
             />
-            <span className="font-kgcs mt-2 text-lg">{props.name}</span>
+            <span className="font-kgcs mt-2 md:text-lg">{props.name}</span>
         </motion.a>
     )
 }
