@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+    font-family: kgcs;
+    src: url("/fonts/kgcs.ttf");
+}
+
+html,
+body {
+    padding: 0;
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans,
+        Helvetica Neue, sans-serif;
+    width: 100vw;
+    height: 100vh;
+    background-image: url("/images/background.jpg");
+    background-size: cover;
+    background-position: center;
+    background-blend-mode: overlay;
+    background-color: #212129;
+    color: #fff;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+* {
+    box-sizing: border-box;
+}
