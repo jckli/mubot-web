@@ -10,7 +10,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     <>
       <Head>
         <title>MangaUpdates Bot</title>
-        <link rel="icon" type="image/png" href="https://avatars.githubusercontent.com/u/39673993" />
+        <link rel="icon" type="image/png" href="/images/logo.png" />
       </Head>
       <div>
         <Component {...pageProps} />
