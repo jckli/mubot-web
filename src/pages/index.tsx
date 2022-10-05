@@ -17,7 +17,7 @@ const Home: NextPage = () => {
                     </div>
                     <div className="text-center mt-4 md:mt-0 md:text-left md:ml-8">
                         <h1 className="font-kgcs text-2xl md:text-4xl">MangaUpdates Bot</h1>
-                        <h2 className="font-kgcs text-sm md:text-base max-w-[500px] mt-4 px-6 md:px-0">Track your favorite mangas, manhwas, or doujins and get every new chapter update sent to you!</h2>
+                        <h2 className="font-kgcs text-sm md:text-base max-w-[500px] mt-4 px-6 md:px-0">Track your favorite mangas, manhwas, or doujins and get every new update sent to you!</h2>
                     </div>
                 </div>
                 <div className="mt-14 px-8 flex flex-wrap gap-8 justify-center items-center">
