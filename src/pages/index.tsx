@@ -1,8 +1,18 @@
 import type { NextPage } from "next";
+import Link from "next/link";
 import Image from "next/image";
 import { MenuButton } from "../components/MenuButton";
+import type {Data, Activity, LanyardResponse} from 'use-lanyard';
+import { useLanyard } from "use-lanyard";
 
-const Home: NextPage = () => {
+const discord_id = "326498384758308875";
+
+interface AppProps {
+    lanyardData: Data;
+}
+
+const Home:NextPage = () => {
+    const lanyardData = useLanyard(discord_id);
     return (
         <>
             <div id="top" className="min-h-[600px] flex flex-col items-center justify-center">
@@ -43,8 +53,40 @@ const Home: NextPage = () => {
                     />
                 </div>
             </div>
+            <div id="content" className="flex justify-center items-center my-10">
+                <div className="px-6">
+                    <div className="bg-[#212129] max-w-[650px] rounded-2xl">
+                        <div className="p-10 font-kgcs">
+                            <div className="flex flex-col items-center">
+                                <p className="text-[10px]">developed with 🤍 by</p>
+                                <div className="mt-4 w-[84px] h-[84px] relative rounded-[50%] overflow-hidden">
+                                    <Image
+                                        alt="ohashi icon"
+                                        src={`https://cdn.discordapp.com/avatars/${lanyardData.data?.discord_user.id}/${lanyardData.data?.discord_user.avatar}.png?size=1024`}
+                                        layout="fill"
+                                    />
+                                </div>
+                                <p className="text-md">ohashi</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="footer" className="my-10 mx-40 flex justify-center items-center font-kgcs">
+                <div className="w-[750px] text-center flex flex-col justify-center items-center">
+                    <p>© copyright 2022 <a href="https://github.com/jckli" className="underline underline-offset-1">jckli</a></p>
+                    <div className="flex gap-2 underline underline-offset-1">
+                        <Link href="/terms">
+                            <a>terms</a>
+                        </Link>
+                        <Link href="/privacy">
+                            <a>privacy</a>
+                        </Link>
+                    </div>
+                </div>
+            </div>
         </>
     );
-};
+};  
 
 export default Home;
