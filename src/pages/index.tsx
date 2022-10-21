@@ -2,14 +2,9 @@ import type { NextPage } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { MenuButton } from "../components/MenuButton";
-import type {Data, Activity, LanyardResponse} from 'use-lanyard';
 import { useLanyard } from "use-lanyard";
 
 const discord_id = "326498384758308875";
-
-interface AppProps {
-    lanyardData: Data;
-}
 
 const Home:NextPage = () => {
     const lanyardData = useLanyard(discord_id);
@@ -67,6 +62,12 @@ const Home:NextPage = () => {
                                     />
                                 </div>
                                 <p className="text-md">ohashi</p>
+                            </div>
+                            <div className="mt-8 text-center">
+                                <h1 className="text-2xl">stats</h1>
+                                <div>
+
+                                </div>
                             </div>
                         </div>
                     </div>
