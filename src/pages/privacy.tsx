@@ -10,21 +10,21 @@ const Privacy: NextPage = () => {
                         <div className="text-center">
                             <div className="mb-6">
                                 <Link href="/">
-                                    <a className="text-[#494e53] transition-all ease-in-out duration-300 hover:text-[#a385b3]">Go Home</a>
+                                    <a className="text-[#494e53] transition-all ease-in-out duration-300 hover:text-[#a385b3] font-kgcs text-2xl">Go Home</a>
                                 </Link>
                             </div>
-                            <h1><b>Privacy Policy</b></h1>
+                            <h1 className="font-kgcs"><b>Privacy Policy</b></h1>
                         </div>
                         <br />
                         <div>
-                            <h2 className="mb-4"><b>Introduction</b></h2>
+                            <h2 className="mb-4 font-kgcs text-2xl"><b>Introduction</b></h2>
                             <p className="font-normal text-lg mb-4">
                                 MangaUpdates was developed as an open source application. This service is provided as is, and by the MangaUpdates team at no cost.
                                 This page is used to inform users regarding our policies with the collection, use, and disclosure of Personal Information.
                             </p>
                         </div>
                         <div>
-                            <h2 className="mb-4"><b>Information Collection and Use</b></h2>
+                            <h2 className="mb-4 font-kgcs text-2xl"><b>Information Collection and Use</b></h2>
                             <p className="font-normal text-lg mb-4">
                                 We currently store a bit of information about you, such as your ids and mangas. If you send updates to a server channel,
                                 we will store your server ID and your server&apos;s channel ID that was set. If you send updates to your personal direct messages,
@@ -38,13 +38,13 @@ const Privacy: NextPage = () => {
                             </p>
                         </div>
                         <div>
-                            <h2 className="mb-4"><b>Data Storage</b></h2>
+                            <h2 className="mb-4 font-kgcs text-2xl"><b>Data Storage</b></h2>
                             <p className="font-normal text-lg mb-4">
                                 We store your data in a database. We use MongoDB to securely store your data.
                             </p>
                         </div>
                         <div>
-                            <h2 className="mb-4"><b>Contact Us</b></h2>
+                            <h2 className="mb-4 font-kgcs text-2xl"><b>Contact Us</b></h2>
                             <p className="font-normal text-lg mb-4">
                                 If you have any questions about this Privacy Policy, please contact us at: <a className="text-[#494e53] transition-all ease-in-out duration-300 hover:text-[#a385b3] mb-6" href="mailto:jack@jackli.dev">
                                     jack@jackli.dev
