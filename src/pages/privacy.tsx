@@ -19,7 +19,7 @@ const Privacy: NextPage = () => {
                         <div>
                             <h2 className="mb-4 font-kgcs text-2xl"><b>Introduction</b></h2>
                             <p className="font-normal text-lg mb-4">
-                                MangaUpdates was developed as an open source application. This service is provided as is, and by the MangaUpdates team at no cost.
+                                MangaUpdates Bot was developed as an open source application. This service is provided as is, and by the MangaUpdates Bot team at no cost.
                                 This page is used to inform users regarding our policies with the collection, use, and disclosure of Personal Information.
                             </p>
                         </div>
