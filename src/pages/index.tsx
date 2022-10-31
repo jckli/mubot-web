@@ -63,12 +63,6 @@ const Home:NextPage = () => {
                                 </div>
                                 <p className="text-md">ohashi</p>
                             </div>
-                            <div className="mt-8 text-center">
-                                <h1 className="text-2xl">stats</h1>
-                                <div>
-
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
