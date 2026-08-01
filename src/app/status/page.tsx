@@ -25,7 +25,7 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function StatusPage() {
   const { data, error, isLoading } = useSWR<StatusData>(
-    'https://rsmapi.hayasaka.moe/tsuuchi/status',
+    '/api/status',
     fetcher,
     { refreshInterval: 5000 }
   );

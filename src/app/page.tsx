@@ -13,7 +13,7 @@ const DISCORD_ID = "326498384758308875";
 
 export default function Home() {
   const { data: statusData, error: statusError } = useSWR(
-    'https://rsmapi.hayasaka.moe/tsuuchi/status',
+    '/api/status',
     fetcher,
     { refreshInterval: 10000 }
   );
