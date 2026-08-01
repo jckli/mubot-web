@@ -188,12 +188,6 @@ export default function StatusPage() {
         )}
       </div>
 
-      {/* Floating Bottom Footer */}
-      <div className="mt-auto pt-8 pb-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
-        <Link href="/terms" className="hover:text-foreground hover:underline transition-colors">Terms</Link>
-        <span className="opacity-50">•</span>
-        <Link href="/privacy" className="hover:text-foreground hover:underline transition-colors">Privacy</Link>
-      </div>
     </main>
   );
 }
