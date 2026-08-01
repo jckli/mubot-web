@@ -15,7 +15,7 @@ export default function Home() {
   const { data: statusData, error: statusError } = useSWR(
     '/api/status',
     fetcher,
-    { refreshInterval: 10000 }
+    { refreshInterval: 60000 }
   );
 
   const isOnline = !!statusData && !statusError;

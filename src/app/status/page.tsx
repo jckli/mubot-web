@@ -14,6 +14,7 @@ interface ShardInfo {
 
 interface StatusData {
   uptime: string;
+  start_time: number;
   memory_usage_mb: number;
   total_servers: number;
   total_users: number;
@@ -24,11 +25,40 @@ import useSWR from 'swr';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
+function formatUptime(seconds: number) {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  if (h > 0) return `${h}h${m}m${s}s`;
+  if (m > 0) return `${m}m${s}s`;
+  return `${s}s`;
+}
+
+function UptimeTimer({ startTime }: { startTime: number }) {
+  const [uptimeStr, setUptimeStr] = useState('');
+
+  useEffect(() => {
+    if (!startTime) return;
+    
+    const update = () => {
+      const now = Math.floor(Date.now() / 1000);
+      const diff = Math.max(0, now - startTime);
+      setUptimeStr(formatUptime(diff));
+    };
+    
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, [startTime]);
+
+  return <>{uptimeStr}</>;
+}
+
 export default function StatusPage() {
   const { data, error, isLoading } = useSWR<StatusData>(
     '/api/status',
     fetcher,
-    { refreshInterval: 5000 }
+    { refreshInterval: 60000 }
   );
 
   const loading = isLoading || (!data && !error);
@@ -75,7 +105,9 @@ export default function StatusPage() {
                   <Clock className="w-4 h-4" />
                   <span className="text-xs font-medium">Global Uptime</span>
                 </div>
-                <div className="text-lg font-bold">{data?.uptime}</div>
+                <div className="text-lg font-bold">
+                  {data?.start_time ? <UptimeTimer startTime={data.start_time} /> : data?.uptime}
+                </div>
               </div>
               
               <div className="p-4 rounded-xl border bg-card text-card-foreground">
