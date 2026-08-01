@@ -43,6 +43,8 @@ export const metadata: Metadata = {
   },
 };
 
+import Footer from "../components/Footer";
+
 export default function RootLayout({
   children,
 }: {
@@ -53,8 +55,11 @@ export default function RootLayout({
       lang="en"
       className={`${plusJakartaSans.variable} ${outfit.variable} ${mochiyPopOne.variable} dark`}
     >
-      <body className="font-sans antialiased bg-background text-foreground selection:bg-primary/30">
-        {children}
+      <body className="font-sans antialiased bg-background text-foreground selection:bg-primary/30 flex flex-col min-h-dvh">
+        <div className="flex-1 flex flex-col w-full">
+          {children}
+        </div>
+        <Footer />
       </body>
     </html>
   );

@@ -66,7 +66,7 @@ export default function StatusPage() {
   const sortedShards = data?.shards ? [...data.shards].sort((a, b) => a.id - b.id) : [];
 
   return (
-    <main className="min-h-dvh flex flex-col p-4">
+    <main className="flex-1 flex flex-col p-4">
       {/* Top Left Navigation */}
       <div className="absolute top-4 left-4">
         <Link 

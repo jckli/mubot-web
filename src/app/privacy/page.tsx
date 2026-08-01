@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <div className="pt-24 pb-12 px-4 md:px-6 max-w-xl mx-auto w-full space-y-8">
+    <main className="flex-1 flex flex-col pt-24 pb-12 px-4 md:px-6 max-w-xl mx-auto w-full space-y-8">
       {/* Header */}
       <div className="space-y-4 pb-6 border-b border-border/50">
         <Link
@@ -65,6 +65,6 @@ export default function PrivacyPage() {
         </section>
 
       </div>
-    </div>
+    </main>
   );
 }
