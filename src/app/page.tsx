@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, MessageCircle, Github, Activity, Heart, ExternalLink } from 'lucide-react';
+import PillButton from '../components/PillButton';
 import useSWR from 'swr';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -49,35 +50,23 @@ export default function Home() {
 
         {/* Tomomai-style pill buttons */}
         <div className="flex flex-col sm:flex-row items-center gap-3 pt-4 w-full sm:w-auto">
-          <a
-            href="https://jackli.dev/mangaupdates"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group flex items-center justify-center gap-2 rounded-full border border-primary/50 bg-primary/10 hover:bg-primary/20 px-5 py-2 text-sm text-primary transition-all w-full sm:w-auto"
+          <PillButton 
+            href="https://jackli.dev/mangaupdates" 
+            variant="primary"
           >
             <span className="font-semibold">Invite Tsuuchi</span>
             <ArrowRight className="h-4 w-4 opacity-70 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
-          </a>
+          </PillButton>
 
-          <a
-            href="https://discord.gg/UcYspqftTF"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group flex items-center justify-center gap-2 rounded-full border border-border/60 bg-secondary hover:bg-accent px-5 py-2 text-sm text-muted-foreground hover:text-foreground transition-all w-full sm:w-auto"
-          >
+          <PillButton href="https://discord.gg/UcYspqftTF">
             <MessageCircle className="h-4 w-4 opacity-70 group-hover:opacity-100 transition-opacity" />
             <span>Support</span>
-          </a>
+          </PillButton>
 
-          <a
-            href="https://github.com/jckli/mangaupdates-bot"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group flex items-center justify-center gap-2 rounded-full border border-border/60 bg-secondary hover:bg-accent px-5 py-2 text-sm text-muted-foreground hover:text-foreground transition-all w-full sm:w-auto"
-          >
+          <PillButton href="https://github.com/jckli/mangaupdates-bot">
             <Github className="h-4 w-4 opacity-70 group-hover:opacity-100 transition-opacity" />
             <span>GitHub</span>
-          </a>
+          </PillButton>
         </div>
 
         {/* Status Link directly below main buttons */}
