@@ -16,6 +16,7 @@ interface StatusData {
   uptime: string;
   memory_usage_mb: number;
   total_servers: number;
+  total_users: number;
   shards: ShardInfo[];
 }
 
@@ -31,6 +32,8 @@ export default function StatusPage() {
   );
 
   const loading = isLoading || (!data && !error);
+  
+  const sortedShards = data?.shards ? [...data.shards].sort((a, b) => a.id - b.id) : [];
 
   return (
     <main className="min-h-dvh flex flex-col p-4">
@@ -45,7 +48,7 @@ export default function StatusPage() {
         </Link>
       </div>
 
-      <div className="flex-1 max-w-3xl w-full mx-auto flex flex-col justify-center py-12">
+      <div className="flex-1 max-w-4xl w-full mx-auto flex flex-col justify-center py-12">
         <div className="mb-8">
           <h1 className="text-2xl font-bold font-kgcs mb-2">Tsuuchi Status</h1>
           <p className="text-sm text-muted-foreground flex items-center gap-2">
@@ -66,7 +69,7 @@ export default function StatusPage() {
           <div className="space-y-6">
             
             {/* Global Stats Row */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               <div className="p-4 rounded-xl border bg-card text-card-foreground">
                 <div className="flex items-center gap-2 text-muted-foreground mb-1">
                   <Clock className="w-4 h-4" />
@@ -85,6 +88,14 @@ export default function StatusPage() {
 
               <div className="p-4 rounded-xl border bg-card text-card-foreground">
                 <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                  <Users className="w-4 h-4" />
+                  <span className="text-xs font-medium">Total Users</span>
+                </div>
+                <div className="text-lg font-bold">{data?.total_users.toLocaleString()}</div>
+              </div>
+
+              <div className="p-4 rounded-xl border bg-card text-card-foreground">
+                <div className="flex items-center gap-2 text-muted-foreground mb-1">
                   <Activity className="w-4 h-4" />
                   <span className="text-xs font-medium">Memory Usage</span>
                 </div>
@@ -93,7 +104,7 @@ export default function StatusPage() {
 
               <div className="p-4 rounded-xl border bg-card text-card-foreground">
                 <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                  <Users className="w-4 h-4" />
+                  <Server className="w-4 h-4 opacity-50" />
                   <span className="text-xs font-medium">Total Shards</span>
                 </div>
                 <div className="text-lg font-bold">{data?.shards.length}</div>
@@ -110,17 +121,18 @@ export default function StatusPage() {
                       <th className="px-6 py-3 font-medium">Status</th>
                       <th className="px-6 py-3 font-medium">Latency</th>
                       <th className="px-6 py-3 font-medium text-right">Servers</th>
+                      <th className="px-6 py-3 font-medium text-right">Users</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {data?.shards.map((shard) => (
+                    {sortedShards.map((shard) => (
                       <tr key={shard.id} className="hover:bg-muted/50 transition-colors">
                         <td className="px-6 py-4 font-medium text-foreground">
                           {shard.id}
                         </td>
                         <td className="px-6 py-4">
-                          <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                          <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium border ${shard.status === 'Ready' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-destructive/10 text-destructive border-destructive/20'}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${shard.status === 'Ready' ? 'bg-emerald-500' : 'bg-destructive'}`}></span>
                             {shard.status}
                           </span>
                         </td>
@@ -129,6 +141,9 @@ export default function StatusPage() {
                         </td>
                         <td className="px-6 py-4 text-right text-muted-foreground">
                           {shard.servers.toLocaleString()}
+                        </td>
+                        <td className="px-6 py-4 text-right text-muted-foreground">
+                          {shard.users.toLocaleString()}
                         </td>
                       </tr>
                     ))}
