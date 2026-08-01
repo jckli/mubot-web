@@ -24,6 +24,19 @@ export default function Home() {
   const user = lanyard.data?.discord_user;
   const status = lanyard.data?.discord_status || 'offline';
 
+  const [gitInfo, setGitInfo] = useState<{version: string, commit: string} | null>(null);
+
+  useEffect(() => {
+    Promise.all([
+      fetch('https://api.github.com/repos/jckli/mangaupdates-bot/tags').then(r => r.json()),
+      fetch('https://api.github.com/repos/jckli/mangaupdates-bot/commits/master').then(r => r.json())
+    ]).then(([tags, commit]) => {
+      const latestTag = tags[0]?.name || 'v3.0.0';
+      const hash = commit.sha ? commit.sha.substring(0, 7) : '';
+      if (hash) setGitInfo({ version: latestTag, commit: hash });
+    }).catch(console.error);
+  }, []);
+
   const statusColors: Record<string, string> = {
     online: 'bg-emerald-500',
     idle: 'bg-amber-500',
@@ -139,13 +152,13 @@ export default function Home() {
             />
           </div>
           <span className="flex items-center gap-1.5">
-            developed with <Heart className="w-3.5 h-3.5 text-primary animate-pulse" /> by <span className="font-semibold text-foreground/90 group-hover:text-foreground">@jckli</span>
+            developed with <Heart className="w-3.5 h-3.5 text-pink-500 animate-pulse" /> by <span className="font-semibold text-foreground/90 group-hover:text-foreground">@jckli</span>
           </span>
           <ExternalLink className="h-3 h-3 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
         </a>
 
-        {/* Legal Links */}
-        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
+        {/* Legal Links & Version */}
+        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-xs text-muted-foreground">
           <Link href="/terms" className="hover:text-foreground hover:underline transition-colors">
             Terms
           </Link>
@@ -153,6 +166,20 @@ export default function Home() {
           <Link href="/privacy" className="hover:text-foreground hover:underline transition-colors">
             Privacy
           </Link>
+
+          {gitInfo && (
+            <>
+              <span className="opacity-50">•</span>
+              <a 
+                href={`https://github.com/jckli/mangaupdates-bot/commit/${gitInfo.commit}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground/50 hover:text-muted-foreground transition-colors font-mono"
+              >
+                {gitInfo.version} ({gitInfo.commit})
+              </a>
+            </>
+          )}
         </div>
       </div>
     </main>

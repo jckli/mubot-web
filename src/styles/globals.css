@@ -35,32 +35,32 @@
   }
   
   .dark, :root {
-    --background: 240 10% 4%; /* Deep dark background */
+    --background: 215 15% 10%; /* Lighter sleek dark background with subtle blue tint */
     --foreground: 0 0% 98%;
-    --card: 240 10% 6%; /* Slightly lighter card */
+    --card: 215 15% 13%; /* Slightly lighter card */
     --card-foreground: 0 0% 98%;
-    --popover: 240 10% 4%;
+    --popover: 215 15% 10%;
     --popover-foreground: 0 0% 98%;
     
-    /* Tsuuchi Icon Pink */
-    --primary: 340 82% 65%; 
+    /* Tsuuchi Icon Blue (#3083e3) */
+    --primary: 212 76% 54%; 
     --primary-foreground: 0 0% 98%;
     
-    --secondary: 240 6% 12%; /* Dark subtle pill background */
+    --secondary: 215 15% 18%; /* Dark subtle pill background */
     --secondary-foreground: 0 0% 98%;
     
-    --muted: 240 6% 12%;
-    --muted-foreground: 240 5% 65%;
+    --muted: 215 15% 18%;
+    --muted-foreground: 215 10% 65%;
     
-    --accent: 240 6% 15%; /* Hover state for buttons */
+    --accent: 215 15% 22%; /* Hover state for buttons */
     --accent-foreground: 0 0% 98%;
     
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
     
-    --border: 240 6% 16%;
-    --input: 240 6% 16%;
-    --ring: 340 82% 65%;
+    --border: 215 15% 20%;
+    --input: 215 15% 20%;
+    --ring: 212 76% 54%;
   }
 }
 
