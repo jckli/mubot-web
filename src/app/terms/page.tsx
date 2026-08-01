@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, AlertTriangle } from "lucide-react";
+import GenericPageHeader from "../../components/GenericPageHeader";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
@@ -11,21 +12,10 @@ export default function TermsPage() {
   return (
     <main className="flex-1 flex flex-col pt-24 pb-12 px-4 md:px-6 max-w-xl mx-auto w-full space-y-8">
       {/* Header */}
-      <div className="space-y-4 pb-6 border-b border-border/50">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back</span>
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Terms of Service</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Last updated: 2026
-          </p>
-        </div>
-      </div>
+      <GenericPageHeader 
+        title="Terms of Service" 
+        subtitle="Last updated: 2026" 
+      />
 
       <div className="space-y-8 text-sm">
         {/* Section 1 */}

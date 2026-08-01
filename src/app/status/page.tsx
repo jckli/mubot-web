@@ -54,6 +54,8 @@ function UptimeTimer({ startTime }: { startTime: number }) {
   return <>{uptimeStr}</>;
 }
 
+import GenericPageHeader from '../../components/GenericPageHeader';
+
 export default function StatusPage() {
   const { data, error, isLoading } = useSWR<StatusData>(
     '/api/status',
@@ -68,25 +70,19 @@ export default function StatusPage() {
   return (
     <main className="flex-1 flex flex-col p-4">
       <div className="flex-1 max-w-4xl w-full mx-auto flex flex-col justify-center py-12">
-        <div className="mb-8 space-y-4 pb-6 border-b border-border/50">
-          <Link 
-            href="/"
-            className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back</span>
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold font-kgcs mb-2">Tsuuchi Status</h1>
-            <p className="text-sm text-muted-foreground flex items-center gap-2">
+        <GenericPageHeader 
+          className="mb-8"
+          title="Tsuuchi Status"
+          subtitle={
+            <div className="flex items-center gap-2">
               <span className="relative flex h-2.5 w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
               </span>
               All systems operational
-            </p>
-          </div>
-        </div>
+            </div>
+          }
+        />
 
         {loading ? (
           <div className="animate-pulse space-y-4">
