@@ -1,20 +1,11 @@
 import { NextResponse } from 'next/server';
+import { tsuuchiApiSecret, tsuuchiBase } from "../../../lib/env";
 
 export async function GET() {
   try {
-    const apiKey = process.env.TSUUCHI_API_SECRET;
-    
-    if (!apiKey) {
-      console.error("Missing TSUUCHI_API_SECRET environment variable");
-      return NextResponse.json(
-        { error: "Server Configuration Error" },
-        { status: 500 }
-      );
-    }
-
-    const res = await fetch('https://rsmapi.hayasaka.moe/tsuuchi/status', {
+    const res = await fetch(`${tsuuchiBase()}/status`, {
       headers: {
-        'x-api-key': apiKey,
+        'x-api-key': tsuuchiApiSecret(),
       },
       next: { revalidate: 5 }
     });

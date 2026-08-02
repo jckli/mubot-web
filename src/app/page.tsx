@@ -1,15 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, MessageCircle, Github, Activity, Heart, ExternalLink } from 'lucide-react';
+import { ArrowRight, MessageCircle, Github, Activity, LogIn } from 'lucide-react';
 import PillButton from '../components/PillButton';
 import useSWR from 'swr';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
-
-const DISCORD_ID = "326498384758308875";
 
 export default function Home() {
   const { data: statusData, error: statusError } = useSWR(
@@ -66,6 +64,11 @@ export default function Home() {
           <PillButton href="https://github.com/jckli/mangaupdates-bot">
             <Github className="h-4 w-4 opacity-70 group-hover:opacity-100 transition-opacity" />
             <span>GitHub</span>
+          </PillButton>
+
+          <PillButton href="/api/auth/discord/start" isExternal={false}>
+            <LogIn className="h-4 w-4 opacity-70 group-hover:opacity-100 transition-opacity" />
+            <span>Login with Discord</span>
           </PillButton>
         </div>
 
