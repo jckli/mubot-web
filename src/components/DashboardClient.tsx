@@ -139,14 +139,14 @@ export default function DashboardClient({
                         rel="noopener noreferrer"
                         className="group rounded-xl border border-border/60 bg-card/60 overflow-hidden hover:bg-accent/40 transition-colors"
                       >
-                        <div className="aspect-[3/4] bg-secondary/40">
+                        <div className="relative aspect-[3/4] bg-secondary/40">
                           {m.coverUrl ? (
-                            // Next Image domain config may not include MangaUpdates CDN.
-                            <img
+                            <Image
                               src={m.coverUrl}
                               alt={m.title}
+                              fill
+                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
                               className="w-full h-full object-cover"
-                              loading="lazy"
                             />
                           ) : null}
                         </div>

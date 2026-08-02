@@ -2,6 +2,9 @@
 module.exports = {
   reactStrictMode: true,
   images: {
-    domains: ["cdn.discordapp.com"],
+    remotePatterns: [
+      { protocol: "https", hostname: "cdn.discordapp.com" },
+      { protocol: "https", hostname: "cdn.mangaupdates.com", pathname: "/image/**" },
+    ],
   },
 }
