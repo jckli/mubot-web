@@ -57,12 +57,12 @@ const mapLimit = async <T, R>(
   return out;
 };
 
-const discordAvatar = (id: string, avatar: string | null, size = 128) =>
+const discordAvatar = (id: string, avatar: string | null, size = 64) =>
   avatar
     ? `https://cdn.discordapp.com/avatars/${id}/${avatar}.png?size=${size}`
     : "https://cdn.discordapp.com/embed/avatars/0.png";
 
-const guildIcon = (id: string, icon: string | null, size = 128) =>
+const guildIcon = (id: string, icon: string | null, size = 64) =>
   icon ? `https://cdn.discordapp.com/icons/${id}/${icon}.png?size=${size}` : null;
 
 const tsuuchiHeaders = () => {
@@ -141,6 +141,8 @@ const getMangaMetadata = (ids: number[]) =>
     cache: "no-store",
   });
 
+const mangaUpdatesUrl = (id: number) => `https://www.mangaupdates.com/series/${id.toString(36)}`;
+
 export const getMangaCards = async (
   type: "user" | "server",
   id: string,
@@ -157,7 +159,7 @@ export const getMangaCards = async (
         title: cached.title,
         author: cached.author,
         coverUrl: cached.cover_url,
-        url: `https://www.mangaupdates.com/series/${m.id}`,
+        url: mangaUpdatesUrl(m.id),
       };
     }
     const details = await getMangaDetails(m.id).catch(() => null);
@@ -169,8 +171,8 @@ export const getMangaCards = async (
       id: m.id,
       title: details?.title || m.title,
       author,
-      coverUrl: details?.image?.url?.thumb || details?.image?.url?.original || null,
-      url: details?.url || `https://www.mangaupdates.com/series/${m.id}`,
+      coverUrl: details?.image?.url?.original || details?.image?.url?.thumb || null,
+      url: details?.url || mangaUpdatesUrl(m.id),
     };
   });
 };

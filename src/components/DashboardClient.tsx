@@ -20,6 +20,8 @@ const cardVariants = {
   show: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.03, duration: 0.2 } }),
 };
 
+const mangaCoverUrl = (url: string) => url.replace(/\/x(250|350)@1\//, "/x$1@2/");
+
 const CardSkeletons = () =>
   Array.from({ length: 8 }).map((_, i) => (
     <div key={i} className="overflow-hidden rounded-xl border border-border/60 bg-card/60 animate-pulse">
@@ -97,6 +99,7 @@ export default function DashboardClient() {
                 alt={s.label}
                 width={32}
                 height={32}
+                unoptimized
                 className="rounded-md"
               />
             ) : (
@@ -198,11 +201,13 @@ export default function DashboardClient() {
                         <div className="relative aspect-[3/4] bg-secondary/40">
                           {m.coverUrl ? (
                             <Image
-                              src={m.coverUrl}
+                              src={mangaCoverUrl(m.coverUrl)}
+                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
                               alt={m.title}
                               fill
-                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
-                              className="w-full h-full object-cover"
+                              priority={i < 4}
+                              unoptimized
+                              className="object-cover"
                             />
                           ) : null}
                         </div>
