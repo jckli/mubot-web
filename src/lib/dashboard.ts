@@ -8,6 +8,10 @@ interface DiscordGuild {
   icon: string | null;
 }
 
+interface ConfiguredServersResponse {
+  server_ids: string[];
+}
+
 interface TrackedManga {
   id: number;
   title: string;
@@ -64,27 +68,21 @@ const getDiscordGuilds = (token: string) =>
     cache: "no-store",
   });
 
-const hasServerConfig = async (serverId: string) => {
-  const res = await fetch(`${tsuuchiBase()}/server/${serverId}/config`, {
-    headers: tsuuchiHeaders(),
+const getConfiguredServerIds = async (serverIds: string[]) => {
+  const data = await fetchJSON<ConfiguredServersResponse>(`${tsuuchiBase()}/servers/configured`, {
+    method: "POST",
+    headers: { ...tsuuchiHeaders(), "Content-Type": "application/json" },
+    body: JSON.stringify({ server_ids: serverIds }),
     cache: "no-store",
   });
-  return res.ok;
+  return new Set(data.server_ids);
 };
 
 export const getScopes = async (session: UserSession): Promise<DashboardScope[]> => {
   const guilds = await getDiscordGuilds(session.accessToken).catch(() => []);
-  const checks = await mapLimit<DiscordGuild, DashboardScope | null>(guilds, 8, async (g) =>
-    (await hasServerConfig(g.id))
-      ? ({
-          scope: `server:${g.id}`,
-          type: "server",
-          id: g.id,
-          label: g.name,
-          iconUrl: guildIcon(g.id, g.icon),
-        } satisfies DashboardScope)
-      : null,
-  );
+  const configured = guilds.length
+    ? await getConfiguredServerIds(guilds.map((g) => g.id)).catch(() => new Set<string>())
+    : new Set<string>();
   return [
     {
       scope: `user:${session.userId}`,
@@ -93,7 +91,18 @@ export const getScopes = async (session: UserSession): Promise<DashboardScope[]>
       label: "Me",
       iconUrl: discordAvatar(session.userId, session.avatar),
     },
-    ...checks.filter((v): v is DashboardScope => !!v),
+    ...guilds
+      .filter((g) => configured.has(g.id))
+      .map(
+        (g) =>
+          ({
+            scope: `server:${g.id}`,
+            type: "server",
+            id: g.id,
+            label: g.name,
+            iconUrl: guildIcon(g.id, g.icon),
+          }) satisfies DashboardScope,
+      ),
   ];
 };
 
