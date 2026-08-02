@@ -25,6 +25,13 @@ interface MangaDetails {
   authors?: { name: string; type: string }[];
 }
 
+interface MangaMetadata {
+  id: number;
+  title: string;
+  author: string;
+  cover_url: string | null;
+}
+
 const fetchJSON = async <T>(url: string, init?: RequestInit) => {
   const res = await fetch(url, init);
   if (!res.ok) throw new Error(`Request failed: ${res.status}`);
@@ -126,13 +133,33 @@ const getMangaDetails = (id: number) =>
     next: { revalidate: 300 },
   });
 
+const getMangaMetadata = (ids: number[]) =>
+  fetchJSON<MangaMetadata[]>(`${tsuuchiBase()}/manga/batch`, {
+    method: "POST",
+    headers: { ...tsuuchiHeaders(), "Content-Type": "application/json" },
+    body: JSON.stringify({ ids }),
+    cache: "no-store",
+  });
+
 export const getMangaCards = async (
   type: "user" | "server",
   id: string,
 ): Promise<MangaCard[]> => {
   const list = await getWatchlist(type, id);
   if (!list.length) return [];
+  const metadata = await getMangaMetadata(list.map((m) => m.id)).catch(() => []);
+  const byId = new Map(metadata.map((m) => [m.id, m]));
   return mapLimit(list, 10, async (m) => {
+    const cached = byId.get(m.id);
+    if (cached) {
+      return {
+        id: m.id,
+        title: cached.title,
+        author: cached.author,
+        coverUrl: cached.cover_url,
+        url: `https://www.mangaupdates.com/series/${m.id}`,
+      };
+    }
     const details = await getMangaDetails(m.id).catch(() => null);
     const author =
       details?.authors?.find((a) => a.type.toLowerCase() === "author")?.name ||

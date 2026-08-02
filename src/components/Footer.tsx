@@ -75,6 +75,15 @@ export default function Footer() {
         <Link href="/privacy" className="hover:text-foreground hover:underline transition-colors">
           Privacy
         </Link>
+        <span className="opacity-50">•</span>
+        <a
+          href="https://mangabaka.org/data/database"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:text-foreground hover:underline transition-colors"
+        >
+          Metadata: MangaBaka + MangaUpdates
+        </a>
 
         {gitInfo && (
           <>
