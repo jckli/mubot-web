@@ -4,37 +4,63 @@ import { AnimatePresence, motion } from "framer-motion";
 import { BookOpen, LogOut } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { DashboardScope, MangaCard } from "../lib/dashboard-types";
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+const fetcher = async <T,>(url: string): Promise<T> => {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+  return res.json() as Promise<T>;
+};
 
 const cardVariants = {
   hidden: { opacity: 0, y: 8 },
   show: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.03, duration: 0.2 } }),
 };
 
-export default function DashboardClient({
-  scopes,
-  initialScope,
-  initialCards,
-}: {
-  scopes: DashboardScope[];
-  initialScope: string;
-  initialCards: MangaCard[];
-}) {
+const CardSkeletons = () =>
+  Array.from({ length: 8 }).map((_, i) => (
+    <div key={i} className="overflow-hidden rounded-xl border border-border/60 bg-card/60 animate-pulse">
+      <div className="aspect-[3/4] bg-secondary/50" />
+      <div className="space-y-2 p-3">
+        <div className="h-4 w-4/5 rounded bg-secondary/70" />
+        <div className="h-3 w-1/2 rounded bg-secondary/50" />
+      </div>
+    </div>
+  ));
+
+export default function DashboardClient() {
   const router = useRouter();
-  const [scope, setScope] = useState(initialScope);
-  const key = `/api/dashboard/manga?scope=${encodeURIComponent(scope)}`;
-  const { data, isLoading } = useSWR<MangaCard[]>(key, fetcher, {
-    fallbackData: scope === initialScope ? initialCards : undefined,
-    keepPreviousData: true,
+  const searchParams = useSearchParams();
+  const wantedScope = searchParams.get("scope");
+  const [scope, setScope] = useState<string | null>(wantedScope);
+  const {
+    data: scopes,
+    error: scopesError,
+    isLoading: isScopesLoading,
+  } = useSWR<DashboardScope[]>("/api/dashboard/scopes", fetcher, {
     revalidateOnFocus: false,
   });
-  const cards = data || [];
-  const active = useMemo(() => scopes.find((s) => s.scope === scope), [scope, scopes]);
+
+  useEffect(() => {
+    if (!scopes?.length) return;
+    const wanted = scopes.find((s) => s.scope === wantedScope)?.scope;
+    setScope((current) =>
+      wanted || scopes.find((s) => s.scope === current)?.scope || scopes[0].scope,
+    );
+  }, [scopes, wantedScope]);
+
+  const mangaKey = scope ? `/api/dashboard/manga?scope=${encodeURIComponent(scope)}` : null;
+  const {
+    data: cards,
+    error: cardsError,
+    isLoading: isCardsLoading,
+  } = useSWR<MangaCard[]>(mangaKey, fetcher, {
+    revalidateOnFocus: false,
+  });
+  const active = useMemo(() => scopes?.find((s) => s.scope === scope), [scope, scopes]);
 
   const onScope = (next: string) => {
     if (next === scope) return;
@@ -42,7 +68,7 @@ export default function DashboardClient({
     router.replace(`/dashboard?scope=${encodeURIComponent(next)}`, { scroll: false });
   };
 
-  const rail = (mobile = false) => (
+  const rail = (items: DashboardScope[], mobile = false) => (
     <div
       className={`${
         mobile
@@ -50,7 +76,7 @@ export default function DashboardClient({
           : "sticky top-4 flex flex-col gap-2 p-2 w-20 shrink-0"
       } rounded-2xl border border-border/60 bg-secondary/30`}
     >
-      {scopes.map((s) => {
+      {items.map((s) => {
         const isActive = s.scope === scope;
         return (
           <motion.button
@@ -92,12 +118,43 @@ export default function DashboardClient({
     </div>
   );
 
+  const railSkeleton = (mobile = false) => (
+    <div
+      className={`${
+        mobile
+          ? "flex overflow-x-auto gap-2 p-2"
+          : "sticky top-4 flex flex-col gap-2 p-2 w-20 shrink-0"
+      } rounded-2xl border border-border/60 bg-secondary/30`}
+    >
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div
+          key={i}
+          className={`flex ${mobile ? "min-w-12" : "w-full"} flex-col items-center gap-1 rounded-xl border border-border/40 bg-card/40 px-2 py-2 animate-pulse`}
+        >
+          <div className="w-8 h-8 rounded-md bg-secondary" />
+          <div className="h-3 w-8 rounded bg-secondary" />
+        </div>
+      ))}
+    </div>
+  );
+
+  if (scopesError || (!isScopesLoading && !scopes?.length)) {
+    return (
+      <main className="flex-1 p-4">
+        <div className="max-w-3xl mx-auto mt-8 rounded-xl border border-border/60 bg-secondary/30 p-6 text-center text-muted-foreground">
+          {scopesError ? "Unable to load your accessible lists." : "No accessible lists were found for this account."}
+        </div>
+      </main>
+    );
+  }
+
+  const isLoadingCards = !scope || isCardsLoading;
   return (
     <main className="flex-1 p-4">
       <div className="max-w-7xl mx-auto space-y-4">
-        <div className="md:hidden">{rail(true)}</div>
+        <div className="md:hidden">{scopes ? rail(scopes, true) : railSkeleton(true)}</div>
         <div className="flex gap-4">
-          <div className="hidden md:block">{rail()}</div>
+          <div className="hidden md:block">{scopes ? rail(scopes) : railSkeleton()}</div>
           <div className="flex-1 space-y-4">
             <motion.div
               initial={{ opacity: 0, y: 4 }}
@@ -107,27 +164,26 @@ export default function DashboardClient({
             >
               <h1 className="text-xl font-semibold">Dashboard</h1>
               <p className="text-sm text-muted-foreground">
-                {active?.type === "user" ? "Your personal manga list" : active?.label}
+                {isScopesLoading
+                  ? "Loading your manga lists…"
+                  : active?.type === "user"
+                    ? "Your personal manga list"
+                    : active?.label}
               </p>
             </motion.div>
 
             <AnimatePresence mode="wait">
               <motion.div
-                key={scope}
+                key={scope || "loading"}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -6 }}
                 transition={{ duration: 0.2 }}
                 className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
               >
-                {isLoading && !cards.length
-                  ? Array.from({ length: 8 }).map((_, i) => (
-                      <div
-                        key={`s-${i}`}
-                        className="h-72 rounded-xl border border-border/60 bg-secondary/30 animate-pulse"
-                      />
-                    ))
-                  : cards.map((m, i) => (
+                {isLoadingCards
+                  ? <CardSkeletons />
+                  : cards?.map((m, i) => (
                       <motion.a
                         custom={i}
                         variants={cardVariants}
@@ -160,9 +216,9 @@ export default function DashboardClient({
                     ))}
               </motion.div>
             </AnimatePresence>
-            {!isLoading && !cards.length ? (
+            {!isLoadingCards && !cards?.length ? (
               <div className="rounded-xl border border-border/60 bg-secondary/30 p-6 text-center text-sm text-muted-foreground">
-                No manga found in this list yet.
+                {cardsError ? "Unable to load this list." : "No manga found in this list yet."}
               </div>
             ) : null}
           </div>
