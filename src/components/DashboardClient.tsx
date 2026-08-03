@@ -41,7 +41,7 @@ export default function DashboardClient() {
   const wantedScope = searchParams.get("scope");
   const [scope, setScope] = useState<string | null>(wantedScope);
   const [selectedManga, setSelectedManga] = useState<MangaCard | null>(null);
-  const [actionError, setActionError] = useState("");
+  const [deletingManga, setDeletingManga] = useState<MangaCard | null>(null);
   const {
     data: scopes,
     error: scopesError,
@@ -76,23 +76,9 @@ export default function DashboardClient() {
   const onScope = (next: string) => {
     if (next === scope) return;
     setSelectedManga(null);
+    setDeletingManga(null);
     setScope(next);
     router.replace(`/dashboard?scope=${encodeURIComponent(next)}`, { scroll: false });
-  };
-
-  const removeManga = async (manga: MangaCard) => {
-    if (!scope) return;
-    setActionError("");
-    await mutateCards((current) => current?.filter((card) => card.id !== manga.id), { revalidate: false });
-    const response = await fetch(`/api/dashboard/management?scope=${encodeURIComponent(scope)}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type: "remove", mangaId: manga.id }),
-    });
-    if (!response.ok) {
-      setActionError("Unable to remove this manga.");
-      await mutateCards();
-    }
   };
 
   const rail = (items: DashboardScope[], mobile = false) => (
@@ -192,7 +178,7 @@ export default function DashboardClient() {
             >
               <div className="flex flex-wrap items-center justify-between gap-3"><div><h1 className="text-xl font-semibold">Dashboard</h1><p className="text-sm text-muted-foreground">
                 {isScopesLoading ? "Loading your manga lists…" : active?.type === "user" ? "Your personal manga list" : active?.label}
-              </p></div>{scope ? <DashboardManager scope={scope} state={management} mutateCards={mutateCards} mutateState={mutateManagement} selectedManga={selectedManga} onCloseGroup={() => setSelectedManga(null)} /> : null}</div>
+              </p></div>{scope ? <DashboardManager scope={scope} state={management} mutateCards={mutateCards} mutateState={mutateManagement} selectedManga={selectedManga} deletingManga={deletingManga} onCloseGroup={() => setSelectedManga(null)} onCloseDelete={() => setDeletingManga(null)} /> : null}</div>
             </motion.div>
 
             <AnimatePresence mode="wait">
@@ -239,7 +225,7 @@ export default function DashboardClient() {
                           ) : null}
                         </div>
                         </a>
-                        {management?.canEdit ? <MangaActions manga={m} onGroup={() => setSelectedManga(m)} onRemove={() => removeManga(m)} /> : null}
+                        {management?.canEdit ? <MangaActions manga={m} onGroup={() => setSelectedManga(m)} onRemove={() => setDeletingManga(m)} /> : null}
                       </motion.article>
                     ))}
               </motion.div>
@@ -249,7 +235,6 @@ export default function DashboardClient() {
                 {cardsError ? "Unable to load this list." : "No manga found in this list yet."}
               </div>
             ) : null}
-            {actionError ? <p className="text-sm text-destructive">{actionError}</p> : null}
           </div>
         </div>
       </div>
