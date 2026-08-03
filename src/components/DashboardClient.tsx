@@ -42,6 +42,7 @@ export default function DashboardClient() {
   const [scope, setScope] = useState<string | null>(wantedScope);
   const [selectedManga, setSelectedManga] = useState<MangaCard | null>(null);
   const [deletingManga, setDeletingManga] = useState<MangaCard | null>(null);
+  const [groupBusyMangaId, setGroupBusyMangaId] = useState<number | null>(null);
   const {
     data: scopes,
     error: scopesError,
@@ -178,7 +179,7 @@ export default function DashboardClient() {
             >
               <div className="flex flex-wrap items-center justify-between gap-3"><div><h1 className="text-xl font-semibold">Dashboard</h1><p className="text-sm text-muted-foreground">
                 {isScopesLoading ? "Loading your manga lists…" : active?.type === "user" ? "Your personal manga list" : active?.label}
-              </p></div>{scope ? <DashboardManager scope={scope} state={management} mutateCards={mutateCards} mutateState={mutateManagement} selectedManga={selectedManga} deletingManga={deletingManga} onCloseGroup={() => setSelectedManga(null)} onCloseDelete={() => setDeletingManga(null)} /> : null}</div>
+              </p></div>{scope ? <DashboardManager scope={scope} state={management} mutateCards={mutateCards} mutateState={mutateManagement} selectedManga={selectedManga} deletingManga={deletingManga} onCloseGroup={() => setSelectedManga(null)} onCloseDelete={() => setDeletingManga(null)} onGroupBusyChange={setGroupBusyMangaId} /> : null}</div>
             </motion.div>
 
             <AnimatePresence mode="wait">
@@ -225,7 +226,7 @@ export default function DashboardClient() {
                           ) : null}
                         </div>
                         </a>
-                        {management?.canEdit ? <MangaActions manga={m} onGroup={() => setSelectedManga(m)} onRemove={() => setDeletingManga(m)} /> : null}
+                        {management?.canEdit ? <MangaActions manga={m} loading={groupBusyMangaId === m.id} onGroup={() => setSelectedManga(m)} onRemove={() => setDeletingManga(m)} /> : null}
                       </motion.article>
                     ))}
               </motion.div>
