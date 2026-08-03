@@ -1,14 +1,23 @@
 import { NextResponse } from "next/server";
 import { getScopes } from "../../../../lib/dashboard";
-import { encodeScopeGrant, getSession, scopeGrantCookieName } from "../../../../lib/session";
+import {
+  encodeScopeGrant,
+  getSession,
+  refreshSession,
+  scopeGrantCookieName,
+  setSessionCookie,
+} from "../../../../lib/session";
 
 export async function GET() {
-  const session = await getSession();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const current = await getSession();
+  if (!current) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const result = await refreshSession(current);
+  if (!result) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
-    const scopes = await getScopes(session);
+    const scopes = await getScopes(result.session);
     const response = NextResponse.json(scopes);
-    response.cookies.set(scopeGrantCookieName, encodeScopeGrant(session.userId, scopes.map((s) => s.scope)), {
+    if (result.refreshed) setSessionCookie(response, result.session);
+    response.cookies.set(scopeGrantCookieName, encodeScopeGrant(result.session.userId, scopes.map((s) => s.scope)), {
       httpOnly: true,
       maxAge: 120,
       path: "/api/dashboard",

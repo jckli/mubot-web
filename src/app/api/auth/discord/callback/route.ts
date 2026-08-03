@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  encodeSession,
+  newSession,
   oauthStateCookieName,
   sessionCookieName,
+  setSessionCookie,
 } from "../../../../../lib/session";
 
 interface DiscordToken {
   access_token: string;
+  refresh_token: string;
+  expires_in: number;
 }
 
 interface DiscordMe {
@@ -54,21 +57,17 @@ export async function GET(req: NextRequest) {
   if (!meRes.ok) return NextResponse.redirect(new URL("/", req.url));
   const me = (await meRes.json()) as DiscordMe;
 
-  const session = encodeSession({
+  const session = newSession({
     userId: me.id,
     username: me.username,
     avatar: me.avatar,
     accessToken: token.access_token,
+    refreshToken: token.refresh_token,
+    accessTokenExpiresAt: Date.now() + token.expires_in * 1000,
   });
 
   const res = NextResponse.redirect(new URL("/dashboard", req.url));
-  res.cookies.set(sessionCookieName, session, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7,
-  });
+  setSessionCookie(res, session);
   res.cookies.delete(oauthStateCookieName);
   return res;
 }
