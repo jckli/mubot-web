@@ -9,7 +9,7 @@ const ADMINISTRATOR = BigInt(8);
 const MANAGE_GUILD = BigInt(32);
 
 export interface ServerConfig {
-  roles?: { admin?: number; ping?: number[] };
+  roles: { admin?: string; ping: string[] };
 }
 
 const request = async <T>(path: string, init?: RequestInit) => {
@@ -22,7 +22,7 @@ const request = async <T>(path: string, init?: RequestInit) => {
   return response.json() as Promise<T>;
 };
 
-export const getServerConfig = (id: string) => request<ServerConfig>(`/server/${id}/config`);
+export const getServerConfig = (id: string) => request<ServerConfig>(`/server/${id}/dashboard-config`);
 
 const getMemberRoles = async (token: string, guildId: string) => {
   const response = await fetch(`https://discord.com/api/v10/users/@me/guilds/${guildId}/member`, {
@@ -48,7 +48,7 @@ export const getManagementState = async (session: UserSession, scopeValue: strin
   const canManageAdmin = guild.owner || (permissions & ADMINISTRATOR) !== BigInt(0) || (permissions & MANAGE_GUILD) !== BigInt(0);
   let canEdit = canManageAdmin || (permissions & MANAGE_GUILD) !== BigInt(0);
   let needsRoleConsent = false;
-  const adminRoleId = config.roles?.admin?.toString();
+  const adminRoleId = config.roles.admin;
   if (!canEdit && adminRoleId) {
     const member = await getMemberRoles(session.accessToken, scope.id);
     needsRoleConsent = member === null;
@@ -59,7 +59,7 @@ export const getManagementState = async (session: UserSession, scopeValue: strin
     canManageAdmin,
     needsRoleConsent,
     reason: canEdit ? undefined : needsRoleConsent ? "Reconnect Discord to verify your configured admin role." : "You need Manage Server or the configured admin role to edit this list.",
-    pingRoleId: config.roles?.ping?.[0]?.toString(),
+    pingRoleId: config.roles.ping[0],
     adminRoleId,
   };
 };
