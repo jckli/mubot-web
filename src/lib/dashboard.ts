@@ -2,10 +2,12 @@ import { DashboardScope, MangaCard } from "./dashboard-types";
 import { tsuuchiApiSecret, tsuuchiBase } from "./env";
 import { UserSession } from "./session";
 
-interface DiscordGuild {
+export interface DiscordGuild {
   id: string;
   name: string;
   icon: string | null;
+  owner: boolean;
+  permissions: string;
 }
 
 interface ConfiguredServersResponse {
@@ -15,6 +17,8 @@ interface ConfiguredServersResponse {
 interface TrackedManga {
   id: number;
   title: string;
+  groupid?: number;
+  groupName?: string;
 }
 
 interface MangaDetails {
@@ -65,11 +69,11 @@ const discordAvatar = (id: string, avatar: string | null, size = 64) =>
 const guildIcon = (id: string, icon: string | null, size = 64) =>
   icon ? `https://cdn.discordapp.com/icons/${id}/${icon}.png?size=${size}` : null;
 
-const tsuuchiHeaders = () => {
+export const tsuuchiHeaders = () => {
   return { "x-api-key": tsuuchiApiSecret() };
 };
 
-const getDiscordGuilds = (token: string) =>
+export const getDiscordGuilds = (token: string) =>
   fetchJSON<DiscordGuild[]>("https://discord.com/api/v10/users/@me/guilds", {
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
@@ -160,6 +164,8 @@ export const getMangaCards = async (
         author: cached.author,
         coverUrl: cached.cover_url,
         url: mangaUpdatesUrl(m.id),
+        groupId: m.groupid,
+        groupName: m.groupName,
       };
     }
     const details = await getMangaDetails(m.id).catch(() => null);
@@ -173,6 +179,8 @@ export const getMangaCards = async (
       author,
       coverUrl: details?.image?.url?.original || details?.image?.url?.thumb || null,
       url: details?.url || mangaUpdatesUrl(m.id),
+      groupId: m.groupid,
+      groupName: m.groupName,
     };
   });
 };

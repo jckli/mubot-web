@@ -8,6 +8,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { DashboardScope, MangaCard } from "../lib/dashboard-types";
+import { ManagementState } from "../lib/dashboard-types";
+import DashboardManager, { MangaActions } from "./DashboardManager";
 
 const fetcher = async <T,>(url: string): Promise<T> => {
   const res = await fetch(url);
@@ -38,6 +40,8 @@ export default function DashboardClient() {
   const searchParams = useSearchParams();
   const wantedScope = searchParams.get("scope");
   const [scope, setScope] = useState<string | null>(wantedScope);
+  const [selectedManga, setSelectedManga] = useState<MangaCard | null>(null);
+  const [actionError, setActionError] = useState("");
   const {
     data: scopes,
     error: scopesError,
@@ -59,15 +63,36 @@ export default function DashboardClient() {
     data: cards,
     error: cardsError,
     isLoading: isCardsLoading,
+    mutate: mutateCards,
   } = useSWR<MangaCard[]>(mangaKey, fetcher, {
+    revalidateOnFocus: false,
+  });
+  const managementKey = scope ? `/api/dashboard/management?scope=${encodeURIComponent(scope)}` : null;
+  const { data: management, mutate: mutateManagement } = useSWR<ManagementState>(managementKey, fetcher, {
     revalidateOnFocus: false,
   });
   const active = useMemo(() => scopes?.find((s) => s.scope === scope), [scope, scopes]);
 
   const onScope = (next: string) => {
     if (next === scope) return;
+    setSelectedManga(null);
     setScope(next);
     router.replace(`/dashboard?scope=${encodeURIComponent(next)}`, { scroll: false });
+  };
+
+  const removeManga = async (manga: MangaCard) => {
+    if (!scope) return;
+    setActionError("");
+    await mutateCards((current) => current?.filter((card) => card.id !== manga.id), { revalidate: false });
+    const response = await fetch(`/api/dashboard/management?scope=${encodeURIComponent(scope)}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "remove", mangaId: manga.id }),
+    });
+    if (!response.ok) {
+      setActionError("Unable to remove this manga.");
+      await mutateCards();
+    }
   };
 
   const rail = (items: DashboardScope[], mobile = false) => (
@@ -165,14 +190,9 @@ export default function DashboardClient() {
               transition={{ duration: 0.2 }}
               className="rounded-xl border border-border/60 bg-secondary/30 p-4"
             >
-              <h1 className="text-xl font-semibold">Dashboard</h1>
-              <p className="text-sm text-muted-foreground">
-                {isScopesLoading
-                  ? "Loading your manga lists…"
-                  : active?.type === "user"
-                    ? "Your personal manga list"
-                    : active?.label}
-              </p>
+              <div className="flex flex-wrap items-center justify-between gap-3"><div><h1 className="text-xl font-semibold">Dashboard</h1><p className="text-sm text-muted-foreground">
+                {isScopesLoading ? "Loading your manga lists…" : active?.type === "user" ? "Your personal manga list" : active?.label}
+              </p></div>{scope ? <DashboardManager scope={scope} state={management} mutateCards={mutateCards} mutateState={mutateManagement} selectedManga={selectedManga} onCloseGroup={() => setSelectedManga(null)} /> : null}</div>
             </motion.div>
 
             <AnimatePresence mode="wait">
@@ -187,17 +207,15 @@ export default function DashboardClient() {
                 {isLoadingCards
                   ? <CardSkeletons />
                   : cards?.map((m, i) => (
-                      <motion.a
+                      <motion.article
                         custom={i}
                         variants={cardVariants}
                         initial="hidden"
                         animate="show"
                         key={m.id}
-                        href={m.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="group rounded-xl border border-border/60 bg-card/60 overflow-hidden hover:bg-accent/40 transition-colors"
+                        className="group relative overflow-hidden rounded-xl border border-border/60 bg-card/60 transition-colors hover:bg-accent/40"
                       >
+                        <a href={m.url} target="_blank" rel="noopener noreferrer" className="block">
                         <div className="relative aspect-[3/4] bg-secondary/40">
                           {m.coverUrl ? (
                             <Image
@@ -216,8 +234,13 @@ export default function DashboardClient() {
                           <div className="text-sm text-muted-foreground line-clamp-1">
                             {m.author}
                           </div>
+                          {m.groupName && m.groupName !== "All" ? (
+                            <div className="mt-1 text-xs text-primary/80 line-clamp-1">{m.groupName}</div>
+                          ) : null}
                         </div>
-                      </motion.a>
+                        </a>
+                        {management?.canEdit ? <MangaActions manga={m} onGroup={() => setSelectedManga(m)} onRemove={() => removeManga(m)} /> : null}
+                      </motion.article>
                     ))}
               </motion.div>
             </AnimatePresence>
@@ -226,6 +249,7 @@ export default function DashboardClient() {
                 {cardsError ? "Unable to load this list." : "No manga found in this list yet."}
               </div>
             ) : null}
+            {actionError ? <p className="text-sm text-destructive">{actionError}</p> : null}
           </div>
         </div>
       </div>
