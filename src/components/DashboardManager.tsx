@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowLeft, Check, Info, LoaderCircle, Plus, Settings2, ShieldAlert, Trash2, UsersRound } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
 import type { KeyedMutator } from "swr";
@@ -8,7 +9,9 @@ import { DashboardRole, ManagementAction, ManagementState, MangaCard } from "../
 import { useDebouncedValue } from "../lib/use-debounced-value";
 import DashboardSelect from "./DashboardSelect";
 import DashboardSheet from "./DashboardSheet";
-import MangaMetadataPanel, { MangaMetadata } from "./MangaMetadataPanel";
+import type { MangaMetadata } from "./MangaMetadataPanel";
+
+const MangaMetadataPanel = dynamic(() => import("./MangaMetadataPanel"));
 
 type MangaSearch = { id: number; title: string; kind?: string; year?: string; rating?: number | null };
 type Group = { group_id: number; name: string };
