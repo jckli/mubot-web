@@ -21,14 +21,6 @@ interface TrackedManga {
   groupName?: string;
 }
 
-interface MangaDetails {
-  id: number;
-  title: string;
-  url: string;
-  image?: { url?: { original?: string; thumb?: string } };
-  authors?: { name: string; type: string }[];
-}
-
 interface MangaMetadata {
   id: number;
   title: string;
@@ -40,25 +32,6 @@ const fetchJSON = async <T>(url: string, init?: RequestInit) => {
   const res = await fetch(url, init);
   if (!res.ok) throw new Error(`Request failed: ${res.status}`);
   return (await res.json()) as T;
-};
-
-const mapLimit = async <T, R>(
-  arr: T[],
-  limit: number,
-  fn: (item: T) => Promise<R>,
-) => {
-  const out = new Array<R>(arr.length);
-  let i = 0;
-  await Promise.all(
-    Array.from({ length: Math.min(limit, arr.length) }, async () => {
-      for (;;) {
-        const idx = i++;
-        if (idx >= arr.length) return;
-        out[idx] = await fn(arr[idx]);
-      }
-    }),
-  );
-  return out;
 };
 
 const discordAvatar = (id: string, avatar: string | null, size = 64) =>
@@ -130,13 +103,6 @@ const getWatchlist = (type: "user" | "server", id: string) =>
     cache: "no-store",
   });
 
-const getMangaDetails = (id: number) =>
-  fetchJSON<MangaDetails>(`${tsuuchiBase()}/manga/${id}`, {
-    headers: tsuuchiHeaders(),
-    cache: "force-cache",
-    next: { revalidate: 300 },
-  });
-
 const getMangaMetadata = (ids: number[]) =>
   fetchJSON<MangaMetadata[]>(`${tsuuchiBase()}/manga/batch`, {
     method: "POST",
@@ -155,7 +121,7 @@ export const getMangaCards = async (
   if (!list.length) return [];
   const metadata = await getMangaMetadata(list.map((m) => m.id)).catch(() => []);
   const byId = new Map(metadata.map((m) => [m.id, m]));
-  return mapLimit(list, 10, async (m) => {
+  return list.map((m) => {
     const cached = byId.get(m.id);
     if (cached) {
       return {
@@ -168,17 +134,12 @@ export const getMangaCards = async (
         groupName: m.groupName,
       };
     }
-    const details = await getMangaDetails(m.id).catch(() => null);
-    const author =
-      details?.authors?.find((a) => a.type.toLowerCase() === "author")?.name ||
-      details?.authors?.[0]?.name ||
-      "Unknown author";
     return {
       id: m.id,
-      title: details?.title || m.title,
-      author,
-      coverUrl: details?.image?.url?.original || details?.image?.url?.thumb || null,
-      url: details?.url || mangaUpdatesUrl(m.id),
+      title: m.title,
+      author: "Unknown author",
+      coverUrl: null,
+      url: mangaUpdatesUrl(m.id),
       groupId: m.groupid,
       groupName: m.groupName,
     };
