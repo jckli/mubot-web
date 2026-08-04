@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { BookOpen, LogOut } from "lucide-react";
+import { BookOpen, Ellipsis, LogOut, Trash2, UsersRound } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -10,6 +10,7 @@ import useSWR from "swr";
 import { DashboardScope, MangaCard } from "../lib/dashboard-types";
 import { ManagementState } from "../lib/dashboard-types";
 import DashboardManager, { MangaActions } from "./DashboardManager";
+import DashboardSheet from "./DashboardSheet";
 
 const fetcher = async <T,>(url: string): Promise<T> => {
   const res = await fetch(url);
@@ -35,6 +36,13 @@ const CardSkeletons = () =>
     </div>
   ));
 
+const MobileCardSkeletons = () =>
+  Array.from({ length: 8 }).map((_, i) => (
+    <div key={i} className="flex h-20 animate-pulse gap-3 rounded-xl border border-border/60 bg-card/60 p-2">
+      <div className="w-12 rounded-md bg-secondary/50" /><div className="flex-1 space-y-2 py-1"><div className="h-4 w-4/5 rounded bg-secondary/70" /><div className="h-3 w-1/2 rounded bg-secondary/50" /></div>
+    </div>
+  ));
+
 export default function DashboardClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -42,6 +50,8 @@ export default function DashboardClient() {
   const [scope, setScope] = useState<string | null>(wantedScope);
   const [selectedManga, setSelectedManga] = useState<MangaCard | null>(null);
   const [deletingManga, setDeletingManga] = useState<MangaCard | null>(null);
+  const [detailsManga, setDetailsManga] = useState<MangaCard | null>(null);
+  const [actionsManga, setActionsManga] = useState<MangaCard | null>(null);
   const [groupBusyMangaId, setGroupBusyMangaId] = useState<number | null>(null);
   const {
     data: scopes,
@@ -78,6 +88,8 @@ export default function DashboardClient() {
     if (next === scope) return;
     setSelectedManga(null);
     setDeletingManga(null);
+    setDetailsManga(null);
+    setActionsManga(null);
     setScope(next);
     router.replace(`/dashboard?scope=${encodeURIComponent(next)}`, { scroll: false });
   };
@@ -179,17 +191,27 @@ export default function DashboardClient() {
             >
               <div className="flex flex-wrap items-center justify-between gap-3"><div><h1 className="text-xl font-semibold">Dashboard</h1><p className="text-sm text-muted-foreground">
                 {isScopesLoading ? "Loading your manga lists…" : active?.type === "user" ? "Your personal manga list" : active?.label}
-              </p></div>{scope ? <DashboardManager scope={scope} state={management} mutateCards={mutateCards} mutateState={mutateManagement} selectedManga={selectedManga} deletingManga={deletingManga} onCloseGroup={() => setSelectedManga(null)} onCloseDelete={() => setDeletingManga(null)} onGroupBusyChange={setGroupBusyMangaId} /> : null}</div>
+              </p></div>{scope ? <DashboardManager scope={scope} state={management} cards={cards} mutateCards={mutateCards} mutateState={mutateManagement} selectedManga={selectedManga} deletingManga={deletingManga} detailsManga={detailsManga} onCloseGroup={() => setSelectedManga(null)} onCloseDelete={() => setDeletingManga(null)} onCloseDetails={() => setDetailsManga(null)} onGroupBusyChange={setGroupBusyMangaId} /> : null}</div>
             </motion.div>
 
             <AnimatePresence mode="wait">
+              <motion.div
+                key={`${scope || "loading"}-mobile`}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.2 }}
+                className="space-y-2 sm:hidden"
+              >
+                {isLoadingCards ? <MobileCardSkeletons /> : cards?.map((m, i) => <motion.article custom={i} variants={cardVariants} initial="hidden" animate="show" key={m.id} className="flex items-center gap-3 rounded-xl border border-border/60 bg-card/60 p-2 transition-colors active:bg-accent/50"><button type="button" onClick={() => setDetailsManga(m)} className="flex min-w-0 flex-1 items-center gap-3 text-left"><div className="relative h-16 w-11 shrink-0 overflow-hidden rounded-md bg-secondary/40">{m.coverUrl ? <Image src={mangaCoverUrl(m.coverUrl)} sizes="44px" alt={m.title} fill priority={i < 4} unoptimized className="object-cover" /> : null}</div><div className="min-w-0"><div className="line-clamp-2 font-semibold leading-tight">{m.title}</div><div className="mt-1 line-clamp-1 text-sm text-muted-foreground">{m.author}</div>{m.groupName && m.groupName !== "All" ? <div className="mt-1 line-clamp-1 text-xs text-primary/80">{m.groupName}</div> : null}</div></button>{management?.canEdit ? <button type="button" aria-label={`Actions for ${m.title}`} onClick={() => setActionsManga(m)} className="shrink-0 rounded-lg p-2 text-muted-foreground active:bg-accent active:text-foreground"><Ellipsis className="size-5" /></button> : null}</motion.article>)}
+              </motion.div>
               <motion.div
                 key={scope || "loading"}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -6 }}
                 transition={{ duration: 0.2 }}
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+                className="hidden grid-cols-2 gap-4 sm:grid lg:grid-cols-3 xl:grid-cols-4"
               >
                 {isLoadingCards
                   ? <CardSkeletons />
@@ -202,7 +224,7 @@ export default function DashboardClient() {
                         key={m.id}
                         className="group relative overflow-hidden rounded-xl border border-border/60 bg-card/60 transition-colors hover:bg-accent/40"
                       >
-                        <a href={m.url} target="_blank" rel="noopener noreferrer" className="block">
+                        <button type="button" onClick={() => setDetailsManga(m)} className="block w-full text-left">
                         <div className="relative aspect-[3/4] bg-secondary/40">
                           {m.coverUrl ? (
                             <Image
@@ -225,7 +247,7 @@ export default function DashboardClient() {
                             <div className="mt-1 text-xs text-primary/80 line-clamp-1">{m.groupName}</div>
                           ) : null}
                         </div>
-                        </a>
+                        </button>
                         {management?.canEdit ? <MangaActions manga={m} loading={groupBusyMangaId === m.id} onGroup={() => setSelectedManga(m)} onRemove={() => setDeletingManga(m)} /> : null}
                       </motion.article>
                     ))}
@@ -239,6 +261,7 @@ export default function DashboardClient() {
           </div>
         </div>
       </div>
+      <DashboardSheet open={!!actionsManga} title={actionsManga?.title || "Manga actions"} onClose={() => setActionsManga(null)}>{actionsManga ? <div className="space-y-2"><button onClick={() => { setActionsManga(null); setSelectedManga(actionsManga); }} className="flex w-full items-center gap-3 rounded-lg p-3 text-left hover:bg-accent"><UsersRound className="size-4 text-muted-foreground" />Set scanlator</button><button onClick={() => { setActionsManga(null); setDeletingManga(actionsManga); }} className="flex w-full items-center gap-3 rounded-lg p-3 text-left text-destructive hover:bg-destructive/10"><Trash2 className="size-4" />Remove manga</button></div> : null}</DashboardSheet>
     </main>
   );
 }

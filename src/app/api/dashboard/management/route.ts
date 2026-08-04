@@ -8,8 +8,8 @@ const sessionForRequest = async () => {
   return current && refreshSession(current);
 };
 
-const response = (body: unknown, session: Awaited<ReturnType<typeof sessionForRequest>>) => {
-  const res = NextResponse.json(body);
+const response = (body: unknown, session: Awaited<ReturnType<typeof sessionForRequest>>, status = 200) => {
+  const res = NextResponse.json(body, { status });
   if (session?.refreshed) setSessionCookie(res, session.session);
   return res;
 };
@@ -48,7 +48,9 @@ export async function POST(req: NextRequest) {
     }
     await applyManagementAction(scope, action);
     return response({ ok: true }, session);
-  } catch {
-    return NextResponse.json({ error: "Unable to update this list" }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    const duplicate = /already in your (watchlist|list)/i.test(message);
+    return response({ error: duplicate ? "This manga is already in this list." : "Unable to update this list" }, session, duplicate ? 409 : 500);
   }
 }

@@ -8,6 +8,7 @@ import { DashboardRole, ManagementAction, ManagementState, MangaCard } from "../
 import { useDebouncedValue } from "../lib/use-debounced-value";
 import DashboardSelect from "./DashboardSelect";
 import DashboardSheet from "./DashboardSheet";
+import MangaMetadataPanel, { MangaMetadata } from "./MangaMetadataPanel";
 
 type MangaSearch = { id: number; title: string; kind?: string; year?: string; rating?: number | null };
 type Group = { group_id: number; name: string };
@@ -28,15 +29,18 @@ export function MangaActions({ manga, loading, onGroup, onRemove }: { manga: Man
   </div>;
 }
 
-export default function DashboardManager({ scope, state, mutateCards, mutateState, selectedManga, deletingManga, onCloseGroup, onCloseDelete, onGroupBusyChange }: {
+export default function DashboardManager({ scope, state, cards, mutateCards, mutateState, selectedManga, deletingManga, detailsManga, onCloseGroup, onCloseDelete, onCloseDetails, onGroupBusyChange }: {
   scope: string;
   state?: ManagementState;
+  cards?: MangaCard[];
   mutateCards: KeyedMutator<MangaCard[]>;
   mutateState: KeyedMutator<ManagementState>;
   selectedManga: MangaCard | null;
   deletingManga: MangaCard | null;
+  detailsManga: MangaCard | null;
   onCloseGroup: () => void;
   onCloseDelete: () => void;
+  onCloseDetails: () => void;
   onGroupBusyChange: (mangaId: number | null) => void;
 }) {
   const [mode, setMode] = useState<Mode>(null);
@@ -56,8 +60,9 @@ export default function DashboardManager({ scope, state, mutateCards, mutateStat
       if (update) await mutateCards((cards) => cards && update(cards), { revalidate: false });
       const response = await fetch(`/api/dashboard/management?scope=${encodeURIComponent(scope)}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(action) });
       if (!response.ok) {
+        const body = await response.json().catch(() => null) as { error?: unknown } | null;
         await mutateCards();
-        throw new Error("Unable to save your change.");
+        throw new Error(typeof body?.error === "string" ? body.error : "Unable to save your change.");
       }
       await Promise.all([mutateCards(), mutateState()]);
     } finally {
@@ -67,23 +72,32 @@ export default function DashboardManager({ scope, state, mutateCards, mutateStat
   const open = (next: Mode) => { setError(""); setQuery(""); setSelectedSearch(null); setMode(next); };
   const save = (action: ManagementAction, update?: (cards: MangaCard[]) => MangaCard[]) => run(action, update).then(() => setMode(null)).catch((err) => setError(err.message));
 
-  if (!state?.canEdit) return state ? <div className="flex items-center gap-2 text-xs text-muted-foreground"><ShieldAlert className="size-3.5" />{state.reason}{state.needsRoleConsent ? <a className="text-primary hover:underline" href="/api/auth/discord/start">Reconnect</a> : null}</div> : null;
+  const details = <MangaDetailsSheet scope={scope} manga={detailsManga} onClose={onCloseDetails} />;
+  if (!state?.canEdit) return <>{state ? <div className="flex items-center gap-2 text-xs text-muted-foreground"><ShieldAlert className="size-3.5" />{state.reason}{state.needsRoleConsent ? <a className="text-primary hover:underline" href="/api/auth/discord/start">Reconnect</a> : null}</div> : null}{details}</>;
   return <>
     <div className="flex flex-wrap gap-2">
       <button onClick={() => open("add")} className={button}><Plus className="size-4" />Add manga</button>
       {scope.startsWith("server:") ? <button onClick={() => open("settings")} className={button}><Settings2 className="size-4" />Settings</button> : null}
     </div>
-    <AddMangaSheet open={mode === "add"} query={query} results={manga} selected={selectedSearch} error={error} saving={saving} searching={query.trim().length >= 2 && (query.trim() !== debouncedQuery.trim() || isSearchingManga)} searchError={mangaError} onClose={() => setMode(null)} onQueryChange={setQuery} onSelect={setSelectedSearch} onBack={() => setSelectedSearch(null)} onConfirm={() => selectedSearch && save({ type: "add", mangaId: selectedSearch.id })} />
+    <AddMangaSheet scope={scope} open={mode === "add"} query={query} results={manga} selected={selectedSearch} exists={cards?.some((manga) => manga.id === selectedSearch?.id) || false} error={error} saving={saving} searching={query.trim().length >= 2 && (query.trim() !== debouncedQuery.trim() || isSearchingManga)} searchError={mangaError} onClose={() => setMode(null)} onQueryChange={setQuery} onSelect={setSelectedSearch} onBack={() => setSelectedSearch(null)} onConfirm={() => selectedSearch && save({ type: "add", mangaId: selectedSearch.id })} />
     <DashboardSheet open={mode === "settings"} title="Server settings" onClose={() => setMode(null)}><RoleSetting label="Ping role" value={state.pingRoleId} roles={roles} error={rolesError} saving={saving} onSet={(roleId) => save({ type: "setRole", roleType: "ping", roleId })} onClear={() => save({ type: "clearRole", roleType: "ping" })} />
       {state.canManageAdmin ? <RoleSetting label="Admin role" value={state.adminRoleId} roles={roles} error={rolesError} saving={saving} onSet={(roleId) => save({ type: "setRole", roleType: "admin", roleId })} onClear={() => save({ type: "clearRole", roleType: "admin" })} /> : <p className="mt-4 border-t border-border/60 pt-4 text-sm text-muted-foreground">Only the server owner, a Discord administrator, or someone with Manage Server can change the admin role.</p>}{error ? <p className="mt-3 text-sm text-destructive">{error}</p> : null}</DashboardSheet>
     <GroupSheet scope={scope} manga={selectedManga} onClose={onCloseGroup} onBusyChange={onGroupBusyChange} mutateCards={mutateCards} />
     <DeleteSheet scope={scope} manga={deletingManga} onClose={onCloseDelete} mutateCards={mutateCards} />
+    {details}
   </>;
 }
 
-function AddMangaSheet({ open, query, results, selected, error, saving, searching, searchError, onClose, onQueryChange, onSelect, onBack, onConfirm }: { open: boolean; query: string; results?: MangaSearch[]; selected: MangaSearch | null; error: string; saving: boolean; searching: boolean; searchError?: Error; onClose: () => void; onQueryChange: (query: string) => void; onSelect: (manga: MangaSearch) => void; onBack: () => void; onConfirm: () => void }) {
+function AddMangaSheet({ scope, open, query, results, selected, exists, error, saving, searching, searchError, onClose, onQueryChange, onSelect, onBack, onConfirm }: { scope: string; open: boolean; query: string; results?: MangaSearch[]; selected: MangaSearch | null; exists: boolean; error: string; saving: boolean; searching: boolean; searchError?: Error; onClose: () => void; onQueryChange: (query: string) => void; onSelect: (manga: MangaSearch) => void; onBack: () => void; onConfirm: () => void }) {
   const hasQuery = query.trim().length >= 2;
-  return <DashboardSheet open={open} title="Add manga" onClose={saving ? () => {} : onClose}>{selected ? <div className="space-y-5"><div className="rounded-xl border border-border/60 bg-secondary/30 p-4"><p className="font-medium">{selected.title}</p><p className="mt-2 text-xs text-muted-foreground">{mangaSearchSummary(selected)}</p></div><div><p className="font-medium">Add this manga?</p><p className="mt-1 text-sm text-muted-foreground">You can choose a scanlator after adding it.</p></div><div className="flex justify-end gap-2"><button disabled={saving} onClick={onBack} className={button}><ArrowLeft className="size-4" />Back</button><button disabled={saving} onClick={onConfirm} className={button}>{saving ? <LoaderCircle className="size-4 animate-spin" /> : <Check className="size-4" />}Add manga</button></div>{error ? <p className="text-sm text-destructive">{error}</p> : null}</div> : <><input autoFocus value={query} onChange={(event) => onQueryChange(event.target.value)} placeholder="Search manga" className="w-full rounded-lg border border-border/60 bg-secondary/40 px-3 py-2 outline-none ring-primary focus:ring-1" /><div aria-live="polite" className="mt-3">{!hasQuery ? <p className="flex items-center gap-2 text-xs text-muted-foreground"><Info className="size-3.5 shrink-0" />Enter at least two characters to search.</p> : searching ? <p className="flex items-center gap-2 text-xs text-muted-foreground"><LoaderCircle className="size-3.5 shrink-0 animate-spin" />Searching manga…</p> : results?.length ? <div className="max-h-72 space-y-1 overflow-y-auto">{results.map((item) => <button key={item.id} onClick={() => onSelect(item)} className="flex w-full items-center justify-between rounded-lg p-3 text-left transition-colors hover:bg-accent"><span><span className="block font-medium">{item.title}</span><span className="mt-0.5 block text-xs text-muted-foreground">{mangaSearchSummary(item)}</span></span><Plus className="size-4 text-muted-foreground" /></button>)}</div> : <p className="flex items-center gap-2 text-xs text-muted-foreground"><Info className="size-3.5 shrink-0" />No manga found.</p>}</div>{searchError ? <p className="mt-3 text-sm text-destructive">Unable to search manga.</p> : null}{error ? <p className="mt-3 text-sm text-destructive">{error}</p> : null}</>}</DashboardSheet>;
+  const metadataKey = selected ? `/api/dashboard/lookup?scope=${encodeURIComponent(scope)}&kind=metadata&mangaId=${selected.id}` : null;
+  const { data: metadata, error: metadataError, isLoading: isLoadingMetadata } = useSWR<MangaMetadata>(metadataKey, fetcher);
+  return <DashboardSheet open={open} title="Add manga" onClose={saving ? () => {} : onClose}>{selected ? <div className="space-y-5">{isLoadingMetadata ? <div className="flex h-56 items-center justify-center text-sm text-muted-foreground"><LoaderCircle className="mr-2 size-4 animate-spin" />Loading manga details…</div> : metadata ? <><MangaMetadataPanel manga={metadata} /><div><p className="font-medium">{exists ? "This manga is already in this list." : "Add this manga?"}</p><p className="mt-1 text-sm text-muted-foreground">{exists ? "Choose another manga or close this confirmation." : "You can choose a scanlator after adding it."}</p></div><div className="flex justify-end gap-2"><button disabled={saving} onClick={onBack} className={button}><ArrowLeft className="size-4" />Back</button>{!exists ? <button disabled={saving} onClick={onConfirm} className={button}>{saving ? <LoaderCircle className="size-4 animate-spin" /> : <Check className="size-4" />}Add manga</button> : null}</div>{error ? <p className="text-sm text-destructive">{error}</p> : null}</> : <div className="space-y-3"><p className="text-sm text-destructive">{metadataError ? "Unable to load manga details." : "Manga details are unavailable."}</p><button onClick={onBack} className={button}><ArrowLeft className="size-4" />Back</button></div>}</div> : <><input autoFocus value={query} onChange={(event) => onQueryChange(event.target.value)} placeholder="Search manga" className="w-full rounded-lg border border-border/60 bg-secondary/40 px-3 py-2 outline-none ring-primary focus:ring-1" /><div aria-live="polite" className="mt-3">{!hasQuery ? <p className="flex items-center gap-2 text-xs text-muted-foreground"><Info className="size-3.5 shrink-0" />Enter at least two characters to search.</p> : searching ? <p className="flex items-center gap-2 text-xs text-muted-foreground"><LoaderCircle className="size-3.5 shrink-0 animate-spin" />Searching manga…</p> : results?.length ? <div className="max-h-72 space-y-1 overflow-y-auto">{results.map((item) => <button key={item.id} onClick={() => onSelect(item)} className="flex w-full items-center justify-between rounded-lg p-3 text-left transition-colors hover:bg-accent"><span><span className="block font-medium">{item.title}</span><span className="mt-0.5 block text-xs text-muted-foreground">{mangaSearchSummary(item)}</span></span><Plus className="size-4 text-muted-foreground" /></button>)}</div> : <p className="flex items-center gap-2 text-xs text-muted-foreground"><Info className="size-3.5 shrink-0" />No manga found.</p>}</div>{searchError ? <p className="mt-3 text-sm text-destructive">Unable to search manga.</p> : null}{error ? <p className="mt-3 text-sm text-destructive">{error}</p> : null}</>}</DashboardSheet>;
+}
+
+function MangaDetailsSheet({ scope, manga, onClose }: { scope: string; manga: MangaCard | null; onClose: () => void }) {
+  const { data, error, isLoading } = useSWR<MangaMetadata>(manga ? `/api/dashboard/lookup?scope=${encodeURIComponent(scope)}&kind=metadata&mangaId=${manga.id}` : null, fetcher);
+  return <DashboardSheet open={!!manga} title="Manga details" onClose={onClose}>{manga ? isLoading ? <div className="flex h-56 items-center justify-center text-sm text-muted-foreground"><LoaderCircle className="mr-2 size-4 animate-spin" />Loading manga details…</div> : data ? <MangaMetadataPanel manga={data} /> : <p className="text-sm text-destructive">{error ? "Unable to load manga details." : "Manga details are unavailable."}</p> : null}</DashboardSheet>;
 }
 
 function RoleSetting({ label, value, roles, error, saving, onSet, onClear }: { label: string; value?: string; roles?: DashboardRole[]; error?: Error; saving: boolean; onSet: (id: string) => void; onClear: () => void }) {
