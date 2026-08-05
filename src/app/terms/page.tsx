@@ -4,7 +4,7 @@ import { ArrowLeft, AlertTriangle } from "lucide-react";
 import GenericPageHeader from "../../components/GenericPageHeader";
 
 export const metadata: Metadata = {
-  title: "Terms of Service",
+  title: "Tsuuchi",
   description: "Terms of Service agreement for Tsuuchi Discord Manga Updates Bot.",
 };
 

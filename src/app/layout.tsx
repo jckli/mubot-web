@@ -23,10 +23,7 @@ const mochiyPopOne = Mochiy_Pop_One({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://tsuuchi.jackli.dev"),
-  title: {
-    default: "Tsuuchi 通知 — Discord Manga & Webtoon Tracker Bot",
-    template: "%s | Tsuuchi 通知",
-  },
+  title: "Tsuuchi",
   description: "Tsuuchi is a fast, clean & reliable Discord bot that sends instant chapter update notifications for manga, manhwa, and webtoons.",
   keywords: ["Tsuuchi", "MangaUpdates", "Discord Bot", "Manga Tracker", "Manhwa", "Webtoon", "Chapter Updates"],
   authors: [{ name: "ohashi", url: "https://github.com/jckli" }],

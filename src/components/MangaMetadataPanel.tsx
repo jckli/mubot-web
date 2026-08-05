@@ -1,5 +1,8 @@
+"use client";
+
 import { ExternalLink } from "lucide-react";
 import Image from "next/image";
+import { useState } from "react";
 import Markdown from "react-markdown";
 
 export type MangaMetadata = {
@@ -24,6 +27,11 @@ function Description({ value }: { value: string }) {
   return <Markdown components={{ p: ({ children }) => <p className="mb-3 text-sm leading-6 text-muted-foreground last:mb-0">{children}</p>, ul: ({ children }) => <ul className="mb-3 list-disc space-y-1 pl-5 text-sm leading-6 text-muted-foreground last:mb-0">{children}</ul>, ol: ({ children }) => <ol className="mb-3 list-decimal space-y-1 pl-5 text-sm leading-6 text-muted-foreground last:mb-0">{children}</ol> }}>{value}</Markdown>;
 }
 
+function Cover({ src, title }: { src: string; title: string }) {
+  const [ratio, setRatio] = useState(2 / 3);
+  return <div style={{ aspectRatio: ratio }} className="relative w-28 shrink-0 overflow-hidden rounded-lg border border-border/60 bg-secondary/40"><Image src={src} alt={`Cover for ${title}`} fill sizes="112px" unoptimized className="object-contain" onLoad={(event) => { const image = event.currentTarget; if (image.naturalWidth && image.naturalHeight) setRatio(image.naturalWidth / image.naturalHeight); }} /></div>;
+}
+
 export default function MangaMetadataPanel({ manga }: { manga: MangaMetadata }) {
   const chapterLabel = manga.status?.toLowerCase() === "completed" ? "Total chapters" : "Latest chapter";
   const details = [
@@ -38,7 +46,7 @@ export default function MangaMetadataPanel({ manga }: { manga: MangaMetadata }) 
 
   return <div className="space-y-5">
     <div className="flex gap-4">
-      {manga.cover_url ? <div className="relative h-36 w-24 shrink-0 overflow-hidden rounded-lg border border-border/60 bg-secondary/40"><Image src={manga.cover_url} alt={`Cover for ${manga.title}`} fill sizes="96px" unoptimized className="object-cover" /></div> : null}
+      {manga.cover_url ? <Cover src={manga.cover_url} title={manga.title} /> : null}
       <div className="min-w-0 space-y-2"><h3 className="text-lg font-semibold leading-tight">{manga.title}</h3>{details.length ? <dl className="space-y-1 text-sm text-muted-foreground">{details.map(([name, value]) => <div key={name}><dt className="sr-only">{name}</dt><dd><span className="text-foreground">{name}:</span> {value}</dd></div>)}</dl> : null}</div>
     </div>
     {manga.description ? <Description value={manga.description} /> : null}

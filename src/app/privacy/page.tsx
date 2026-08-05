@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import GenericPageHeader from "../../components/GenericPageHeader";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy",
+  title: "Tsuuchi",
   description: "Privacy Policy and data collection guidelines for Tsuuchi Discord Manga Updates Bot.",
 };
 
